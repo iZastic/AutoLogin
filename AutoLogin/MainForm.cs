@@ -106,8 +106,18 @@ namespace AutoLogin
                         FileName = SETTINGS.WowPath + (ActiveAccount.Client == "32bit" ? @"\Wow.exe" : @"\Wow-64.exe")
                     }
                 };
-                process.Start();
-                process.WaitForInputIdle();
+                if (ActiveAccount.Client == "32bit")
+                {
+                    File.Move(SETTINGS.WowPath + @"\Wow-64.exe", SETTINGS.WowPath + @"\Wow-64.bak");
+                    process.Start();
+                    process.WaitForInputIdle();
+                    File.Move(SETTINGS.WowPath + @"\Wow-64.bak", SETTINGS.WowPath + @"\Wow-64.exe");
+                }
+                else
+                {
+                    process.Start();
+                    process.WaitForInputIdle();
+                }
                 Login(process);
             }
         }
@@ -117,6 +127,10 @@ namespace AutoLogin
             if (ACCOUNTS.Count > 0)
             {
                 List<AllLogin> loginAccounts = new List<AllLogin>();
+                if (rdo32bit.Checked)
+                {
+                    File.Move(SETTINGS.WowPath + @"\Wow-64.exe", SETTINGS.WowPath + @"\Wow-64.bak");
+                }
                 foreach (Account account in ACCOUNTS)
                 {
                     AllLogin AL = new AllLogin();
@@ -125,7 +139,7 @@ namespace AutoLogin
                     {
                         StartInfo = new ProcessStartInfo
                         {
-                            FileName = SETTINGS.WowPath + (ActiveAccount.Client == "32bit" ? @"\Wow.exe" : @"\Wow-64.exe")
+                            FileName = SETTINGS.WowPath + (rdo32bit.Checked ? @"\Wow.exe" : @"\Wow-64.exe")
                         }
                     };
                     AL.AllProcess.Start();
@@ -145,6 +159,10 @@ namespace AutoLogin
                     {
                         break;
                     }
+                }
+                if (rdo32bit.Checked)
+                {
+                    File.Move(SETTINGS.WowPath + @"\Wow-64.bak", SETTINGS.WowPath + @"\Wow-64.exe");
                 }
             }
         }
