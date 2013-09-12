@@ -271,8 +271,10 @@ namespace AutoLogin
                 account = ActiveAccount;
             }
             SetForegroundWindow(process.MainWindowHandle);
+            Thread.Sleep(300);
             SendKeys.SendWait(account.Email);
             SendKeys.SendWait("{TAB}");
+            Thread.Sleep(300);
             SendKeys.SendWait(account.Password);
             SendKeys.SendWait("~");
             if (account.Multiple)
