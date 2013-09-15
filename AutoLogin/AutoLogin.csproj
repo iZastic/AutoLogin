@@ -25,8 +25,8 @@
     <ProductName>AutoLogin</ProductName>
     <PublisherName>iZastic</PublisherName>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>13</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <ApplicationRevision>5</ApplicationRevision>
+    <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -86,7 +86,14 @@
     <Compile Include="AddEditForm.Designer.cs">
       <DependentUpon>AddEditForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="AllLogin.cs" />
+    <Compile Include="EditAccountNameForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditAccountNameForm.Designer.cs">
+      <DependentUpon>EditAccountNameForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GetResolution.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="PasswordForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +118,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AddEditForm.resx">
       <DependentUpon>AddEditForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EditAccountNameForm.resx">
+      <DependentUpon>EditAccountNameForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PasswordForm.resx">
       <DependentUpon>PasswordForm.cs</DependentUpon>

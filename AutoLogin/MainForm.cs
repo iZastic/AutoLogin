@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,13 +15,23 @@ namespace AutoLogin
 {
     public partial class MainForm : Form
     {
-        // Imports user32.dll so I bring the wow client to foreground
+        // Bring the process to foreground
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        // Force window position and size
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
+        private extern static bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, int uFlags);
+        // Convert char to virtual-key code
         [DllImport("user32.dll")]
-        private static extern
-            bool SetForegroundWindow(IntPtr hWnd);
+        static extern short VkKeyScan(char ch);
+        // Post message to process
+        [DllImport("user32.dll")]
+        public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, int wParam, IntPtr lParam);
 
         string data;
         Account ActiveAccount;
+        bool Is64bit = Environment.Is64BitOperatingSystem;
+        Options options;
         public Crypto crypto;
         public static List<Account> ACCOUNTS;
         public static Settings SETTINGS;
@@ -36,6 +47,7 @@ namespace AutoLogin
         {
             // Finds the path where program is executing
             PATH = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            options = new Options();
             crypto = new Crypto();
             ACCOUNTS = new List<Account>();
 
@@ -103,20 +115,12 @@ namespace AutoLogin
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = SETTINGS.WowPath + (ActiveAccount.Client == "32bit" ? @"\Wow.exe" : @"\Wow-64.exe"),
-                        Arguments = (ActiveAccount.Client == "32bit" ? @"-noautolaunch64bit" : "")
+                        FileName = SETTINGS.WowPath + (ActiveAccount.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
+                        Arguments = (ActiveAccount.Client == "32bit" ? "-noautolaunch64bit " : "")
                     }
                 };
-                if (ActiveAccount.Client == "32bit")
-                {
-                    process.Start();
-                }
-                else
-                {
-                    process.Start();
-                }
-                process.WaitForInputIdle();
-                Login(process);
+                SetWTFAndStart(process, ActiveAccount);
+                Login(process, ActiveAccount);
             }
         }
 
@@ -124,36 +128,18 @@ namespace AutoLogin
         {
             if (ACCOUNTS.Count > 0)
             {
-                List<AllLogin> loginAccounts = new List<AllLogin>();
                 foreach (Account account in ACCOUNTS)
                 {
-                    AllLogin AL = new AllLogin();
-                    AL.AllAccount = account;
-                    AL.AllProcess = new Process
+                    var process = new Process
                     {
                         StartInfo = new ProcessStartInfo
                         {
-                            FileName = SETTINGS.WowPath + (account.Client == "32bit" ? @"\Wow.exe" : @"\Wow-64.exe"),
-                            Arguments = (account.Client == "32bit" ? "-noautolaunch64bit" : "")
+                            FileName = SETTINGS.WowPath + (account.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
+                            Arguments = (account.Client == "32bit" ? "-noautolaunch64bit " : "")
                         }
                     };
-                    AL.AllProcess.Start();
-                    loginAccounts.Add(AL);
-                }
-                while (true)
-                {
-                    for (int i = loginAccounts.Count-1; i >= 0; i--)
-                    {
-                        if (loginAccounts[i].AllProcess.WaitForInputIdle(15000))
-                        {
-                            Login(loginAccounts[i].AllProcess, loginAccounts[i].AllAccount);
-                            loginAccounts.Remove(loginAccounts[i]);
-                        }
-                    }
-                    if (loginAccounts.Count <= 0)
-                    {
-                        break;
-                    }
+                    SetWTFAndStart(process, account);
+                    Login(process, account);
                 }
             }
         }
@@ -255,28 +241,74 @@ namespace AutoLogin
             lstAccounts.DataSource = ACCOUNTS;
         }
 
-        private void Login(Process process, Account account = null)
+        private void SetWTFAndStart(Process process, Account account)
         {
-            if (account == null)
+            options.SetAccount(account);
+
+            // Find or create directory
+            if (!Directory.Exists(SETTINGS.WowPath + @"\WTF"))
             {
-                account = ActiveAccount;
+                Directory.CreateDirectory(SETTINGS.WowPath + @"\WTF");
             }
-            SetForegroundWindow(process.MainWindowHandle);
-            Thread.Sleep(300);
-            SendKeys.SendWait(account.Email);
-            SendKeys.SendWait("{TAB}");
-            Thread.Sleep(300);
-            SendKeys.SendWait(account.Password);
-            SendKeys.SendWait("~");
-            if (account.Multiple)
+            else
             {
-                Thread.Sleep(1600);
-                for (int i = 0; i < account.SelectedAccount; i++)
+                if (File.Exists(SETTINGS.WowPath + @"\WTF\Config.wtf"))
                 {
-                    SendKeys.SendWait("{DOWN}");
+                    // Modify current config file
+                    File.WriteAllLines(SETTINGS.WowPath + @"\WTF\Config.wtf",
+                        File.ReadLines(SETTINGS.WowPath + @"\WTF\Config.wtf").
+                            Where(line => !line.Contains("readTOS")).
+                            Where(line => !line.Contains("readEULA")).
+                            Where(line => !line.Contains("accountName")).
+                            Where(line => !line.Contains("gxWindow")).
+                            Where(line => !line.Contains("hwDetect")).
+                            Where(line => !line.Contains("gxMaximize")).
+                            Where(line => !line.Contains("accountList")).
+                            Where(line => !line.Contains(account.SetRealm ? "realmName" : "null")).
+                            Where(line => !line.Contains(account.Windowed ? "gxResolution" : "null")).
+                            Where(line => !line.Contains(account.LowDetail ? "gxApi" : "null")).
+                            Where(line => !line.Contains(account.LowDetail ? "graphicsQuality" : "null")).
+                            Where(line => !line.Contains(account.SetCharacter ? "lastCharacterIndex" : "null")).
+                            ToList());
+                    File.AppendAllLines(SETTINGS.WowPath + @"\WTF\Config.wtf", options.CompiledList());
                 }
-                SendKeys.SendWait("~");
+                else
+                {
+                    // Create new config file
+                    File.WriteAllLines(SETTINGS.WowPath + @"\WTF\Config.wtf", options.CompiledList());
+                }
             }
+
+            process.Start();
+            Thread.Sleep(500);
+        }
+
+        private void Login(Process p, Account a)
+        {
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                uint WM_KEYDOWN = 0x0100;
+                int VK_RETURN = 0x0D;
+                Process process = p;
+                Account account = a;
+
+                do
+                {
+                    process.WaitForInputIdle();
+                    process.Refresh();
+                } while (process.MainWindowHandle.ToInt32() == 0);
+
+                Thread.Sleep(account.Windowed ? 600 : 1500);
+                for (int i = 0; i < account.Password.Length; i++)
+                {
+                    PostMessage(process.MainWindowHandle, WM_KEYDOWN, VkKeyScan(account.Password.ToCharArray()[i]), IntPtr.Zero);
+                    Thread.Sleep(30);
+                }
+                PostMessage(process.MainWindowHandle, WM_KEYDOWN, VK_RETURN, IntPtr.Zero);
+
+                Thread.CurrentThread.Abort();
+            }).Start();
         }
     }
 }

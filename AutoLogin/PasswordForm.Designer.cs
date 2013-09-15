@@ -128,6 +128,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(221, 122);
+            this.ControlBox = false;
             this.Controls.Add(this.btnSubmit);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.btnSave);
@@ -137,8 +138,10 @@
             this.Controls.Add(this.txtConfirm);
             this.Controls.Add(this.txtNew);
             this.Controls.Add(this.txtCurrent);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "PasswordForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Change Password";

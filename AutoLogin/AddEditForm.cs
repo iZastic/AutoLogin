@@ -16,6 +16,7 @@ namespace AutoLogin
     {
         Account account;
         MainForm mForm;
+        GetResolution getRes;
 
         public AddEditForm()
         {
@@ -39,23 +40,48 @@ namespace AutoLogin
 
         private void AddEditForm_Load(object sender, EventArgs e)
         {
+            getRes = new GetResolution();
+            lstAccounts.SelectedIndex = 0;
+            lstCharacter.SelectedIndex = 0;
+
+            drpResolution.DataSource = getRes.list;
+            drpRealm.DataSource = Options.GetRealms();
+
             if (account != null)
             {
-                txtName.Text = account.Name;
-                txtEmail.Text = account.Email;
-                txtPassword.Text = account.Password;
-                chkMultiple.Checked = account.Multiple;
-                if (account.Multiple)
+                try
                 {
-                    if (account.NumberAccounts > 2)
+                    txtName.Text = account.Name;
+                    txtEmail.Text = account.Email;
+                    txtPassword.Text = account.Password;
+                    chkMultiple.Checked = account.Multiple;
+                    if (account.Multiple)
                     {
-                        for (int i = 2; i < account.NumberAccounts; ++i)
+                        if (account.AccountNames == null)
                         {
-                            numAccounts.Value += 1;
+                            for (int i = 2; i < account.NumberAccounts; ++i)
+                            {
+                                numAccounts.Value += 1;
+                            }
                         }
+                        else
+                        {
+                            numAccounts.Value = account.NumberAccounts;
+                            lstAccounts.Items.Clear();
+                            lstAccounts.Items.AddRange(account.AccountNames);
+                        }
+                        lstAccounts.SelectedIndex = account.SelectedAccount;
                     }
-                    lstAccounts.SelectedIndex = account.SelectedAccount;
+                    chkWindowed.Checked = account.Windowed;
+                    drpResolution.SelectedItem = account.Resolution;
+                    chkLowDetail.Checked = account.LowDetail;
+                    chkRealm.Checked = account.SetRealm;
+                    drpRealm.SelectedItem = account.Realm;
+                    chkCharacter.Checked = account.SetCharacter;
+                    lstCharacter.SelectedIndex = account.CharacterSlot;
+                    chkEnterWorld.Checked = account.EnterWorld;
                 }
+                catch (Exception) { }
             }
         }
 
@@ -72,7 +98,17 @@ namespace AutoLogin
             account.Password = txtPassword.Text;
             account.Multiple = chkMultiple.Checked;
             account.NumberAccounts = chkMultiple.Checked ? (int)numAccounts.Value : 0;
-            account.SelectedAccount = chkMultiple.Checked ? lstAccounts.SelectedIndex : 0;
+            account.AccountNames = new string[lstAccounts.Items.Count];
+            lstAccounts.Items.CopyTo(account.AccountNames, 0);
+            account.SelectedAccount = chkMultiple.Checked ? lstAccounts.SelectedIndices[0] : 0;
+            account.Windowed = chkWindowed.Checked;
+            account.Resolution = drpResolution.Text;
+            account.LowDetail = chkLowDetail.Checked;
+            account.SetRealm = chkRealm.Checked;
+            account.Realm = drpRealm.Text;
+            account.SetCharacter = chkCharacter.Checked;
+            account.CharacterSlot = lstCharacter.SelectedIndex;
+            account.EnterWorld = chkEnterWorld.Checked;
             mForm.refreshList();
             this.Close();
         }
@@ -84,27 +120,50 @@ namespace AutoLogin
 
         private void chkMultiple_CheckedChanged(object sender, EventArgs e)
         {
-            if (chkMultiple.Checked)
+            if (chkMultiple.Checked && chkMultiple.Focused)
             {
-                this.Width = 415;
-                lstAccounts.SelectedIndex = 0;
+                MessageBox.Show("In order for account selection to work\nyou need to enter the names as they\nare listed when you log into WoW.\nExample:\nWoW1\nWoW2");
             }
-            else
-            {
-                this.Width = 250;
-            }
+            lstAccounts.Enabled = chkMultiple.Checked ? true : false;
+            numAccounts.Enabled = chkMultiple.Checked ? true : false;
         }
 
         private void numAccounts_ValueChanged(object sender, EventArgs e)
         {
             if (numAccounts.Value > lstAccounts.Items.Count)
             {
-                lstAccounts.Items.Add("Account " + numAccounts.Value);
+                lstAccounts.Items.Add("WoW" + numAccounts.Value);
             }
             else
             {
                 lstAccounts.Items.RemoveAt(lstAccounts.Items.Count - 1);
             }
+        }
+
+        private void chkWindowed_CheckedChanged(object sender, EventArgs e)
+        {
+            drpResolution.Enabled = chkWindowed.Checked ? true : false;
+            drpResolution.SelectedIndex = 0;
+            chkLowDetail.Enabled = chkWindowed.Checked ? true : false;
+        }
+
+        private void chkRealm_CheckedChanged(object sender, EventArgs e)
+        {
+            chkCharacter.Enabled = chkRealm.Checked ? true : false;
+            drpRealm.Enabled = chkRealm.Checked ? true : false;
+            drpRealm.SelectedIndex = 0;
+        }
+
+        private void chkCharacter_CheckedChanged(object sender, EventArgs e)
+        {
+            lstCharacter.Enabled = chkCharacter.Checked ? true : false;
+            chkEnterWorld.Enabled = chkCharacter.Checked ? true : false;
+        }
+
+        private void lstAccounts_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            int index = lstAccounts.IndexFromPoint(e.Location);
+            new EditAccountNameForm().ShowMe(this, index);
         }
     }
 }

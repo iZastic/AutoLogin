@@ -12,6 +12,7 @@ namespace AutoLogin
         string IVstring = "gk&LZhY$FWEnlZvZHRya1*EE0)H9mZmktHtuMkl(b%w_CnfjqpJwwHcrL&%20(hq";
         byte[] salt = Encoding.UTF8.GetBytes("uzjz7sXV3prD1rE^wy64rT!Nn8c#btM5pOL%OlbJ5p-M#Hg@L%1vu0i4SEZn@hrW");
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public string Encrypt(byte[] plainTextBytes, string pwd)
         {
             // Convert the IV and password string to bytes
@@ -45,6 +46,7 @@ namespace AutoLogin
             return Convert.ToBase64String(encrypted);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]
         public MemoryStream Decrypt(string cryptoText, string pwd)
         {
             // Continue only if the string has data

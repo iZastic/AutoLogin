@@ -10,7 +10,7 @@ namespace AutoLogin
     {
         string ProgramFilesx86()
         {
-            if (8 == IntPtr.Size || (!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"))))
+            if (Environment.Is64BitOperatingSystem)
             {
                 return Environment.GetEnvironmentVariable("ProgramFiles(x86)");
             }
