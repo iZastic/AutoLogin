@@ -16,17 +16,17 @@ namespace AutoLogin
     public partial class MainForm : Form
     {
         // Bring the process to foreground
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
         // Force window position and size
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1060:MovePInvokesToNativeMethodsClass"), DllImport("user32.dll")]
+        [DllImport("user32.dll", EntryPoint = "PostMessageA")]
         private extern static bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, int uFlags);
         // Convert char to virtual-key code
         [DllImport("user32.dll")]
         static extern short VkKeyScan(char ch);
         // Post message to process
         [DllImport("user32.dll")]
-        public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, int wParam, IntPtr lParam);
+        public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         string data;
         Account ActiveAccount;
@@ -264,10 +264,10 @@ namespace AutoLogin
                             Where(line => !line.Contains("hwDetect")).
                             Where(line => !line.Contains("gxMaximize")).
                             Where(line => !line.Contains("accountList")).
+                            Where(line => !line.Contains("graphicsQuality")).
                             Where(line => !line.Contains(account.SetRealm ? "realmName" : "null")).
                             Where(line => !line.Contains(account.Windowed ? "gxResolution" : "null")).
                             Where(line => !line.Contains(account.LowDetail ? "gxApi" : "null")).
-                            Where(line => !line.Contains(account.LowDetail ? "graphicsQuality" : "null")).
                             Where(line => !line.Contains(account.SetCharacter ? "lastCharacterIndex" : "null")).
                             ToList());
                     File.AppendAllLines(SETTINGS.WowPath + @"\WTF\Config.wtf", options.CompiledList());
@@ -279,33 +279,46 @@ namespace AutoLogin
                 }
             }
 
+            Thread.Sleep(250);
             process.Start();
-            Thread.Sleep(500);
+            Thread.Sleep(400);
         }
 
         private void Login(Process p, Account a)
         {
+            // Run this in a new thread so AutoLogin is not frozen
             new Thread(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
                 uint WM_KEYDOWN = 0x0100;
+                uint WM_KEYUP = 0x0101;
                 int VK_RETURN = 0x0D;
                 Process process = p;
                 Account account = a;
 
-                do
+                do // Keep repeating till window is idle
                 {
                     process.WaitForInputIdle();
                     process.Refresh();
                 } while (process.MainWindowHandle.ToInt32() == 0);
 
+                // Sleep for a little to give the insides time to load
                 Thread.Sleep(account.Windowed ? 600 : 1500);
+                // Send the password one key at a time
                 for (int i = 0; i < account.Password.Length; i++)
                 {
-                    PostMessage(process.MainWindowHandle, WM_KEYDOWN, VkKeyScan(account.Password.ToCharArray()[i]), IntPtr.Zero);
+                    PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VkKeyScan(account.Password.ToCharArray()[i])), IntPtr.Zero);
                     Thread.Sleep(30);
                 }
-                PostMessage(process.MainWindowHandle, WM_KEYDOWN, VK_RETURN, IntPtr.Zero);
+                // Hit enter to log in
+                PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+
+                if (account.EnterWorld)
+                {
+                    Thread.Sleep(15000);
+                    PostMessage(process.MainWindowHandle, WM_KEYUP, new IntPtr(VK_RETURN), IntPtr.Zero);
+                    PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+                }
 
                 Thread.CurrentThread.Abort();
             }).Start();

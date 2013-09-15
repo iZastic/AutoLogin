@@ -9,8 +9,6 @@ namespace AutoLogin
     public class Options
     {
         public bool SetRealm = true,
-                    SetReadTOS = true,
-                    SetReadEULA = true,
                     SetResolution = true,
                     SetAccountName = true,
                     SetAccountList = true,
@@ -28,15 +26,8 @@ namespace AutoLogin
         {
             List<string> list = new List<string>();
 
-            if (SetReadTOS)
-            {
-                list.Add("SET readTOS \"1\"");
-            }
-
-            if (SetReadEULA)
-            {
-                list.Add("SET readEULA \"1\"");
-            }
+            list.Add("SET readTOS \"1\"");
+            list.Add("SET readEULA \"1\"");
 
             if (SetRealm && account.SetRealm)
             {
@@ -47,13 +38,11 @@ namespace AutoLogin
             {
                 list.Add("SET gxWindow \"1\"");
                 list.Add("SET gxMaximize \"0\"");
-                list.Add("SET hwDetect \"0\"");
                 list.Add("SET gxResolution \"" + account.Resolution.Replace(" ", string.Empty) + "\"");
             }
             else
             {
                 list.Add("SET gxWindow \"0\"");
-                list.Add("SET hwDetect \"1\"");
             }
 
             if (SetAccountName)
@@ -82,8 +71,13 @@ namespace AutoLogin
 
             if (SetGraphicsQuality && account.LowDetail)
             {
+                list.Add("SET hwDetect \"0\"");
                 list.Add("SET graphicsQuality \"0\"");
                 list.Add("SET gxApi \"D3D9\"");
+            }
+            else
+            {
+                list.Add("SET hwDetect \"1\"");
             }
 
             if (SetLastCharacterIndex && account.SetCharacter)
