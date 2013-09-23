@@ -289,9 +289,10 @@ namespace AutoLogin
             // Run this in a new thread so AutoLogin is not frozen
             new Thread(() =>
             {
-                Thread.CurrentThread.IsBackground = true;
+                //Thread.CurrentThread.IsBackground = true;
                 uint WM_KEYDOWN = 0x0100;
                 uint WM_KEYUP = 0x0101;
+                uint WM_CHAR = 0x0102;
                 int VK_RETURN = 0x0D;
                 Process process = p;
                 Account account = a;
@@ -305,9 +306,10 @@ namespace AutoLogin
                 // Sleep for a little to give the insides time to load
                 Thread.Sleep(account.Windowed ? 600 : 1500);
                 // Send the password one key at a time
+
                 for (int i = 0; i < account.Password.Length; i++)
                 {
-                    PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VkKeyScan(account.Password.ToCharArray()[i])), IntPtr.Zero);
+                    PostMessage(process.MainWindowHandle, WM_CHAR, new IntPtr(account.Password[i]), IntPtr.Zero);
                     Thread.Sleep(30);
                 }
                 // Hit enter to log in
