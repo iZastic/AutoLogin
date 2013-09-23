@@ -289,7 +289,7 @@ namespace AutoLogin
             // Run this in a new thread so AutoLogin is not frozen
             new Thread(() =>
             {
-                //Thread.CurrentThread.IsBackground = true;
+                Thread.CurrentThread.IsBackground = true;
                 uint WM_KEYDOWN = 0x0100;
                 uint WM_KEYUP = 0x0101;
                 uint WM_CHAR = 0x0102;
