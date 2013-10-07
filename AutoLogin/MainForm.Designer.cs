@@ -45,6 +45,7 @@
             this.lstAccounts.FormattingEnabled = true;
             this.lstAccounts.Location = new System.Drawing.Point(10, 10);
             this.lstAccounts.Name = "lstAccounts";
+            this.lstAccounts.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.lstAccounts.Size = new System.Drawing.Size(180, 108);
             this.lstAccounts.TabIndex = 0;
             this.lstAccounts.SelectedIndexChanged += new System.EventHandler(this.lstAccounts_SelectedIndexChanged);
@@ -84,7 +85,7 @@
             this.btnLaunch.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnLaunch.Location = new System.Drawing.Point(67, 126);
             this.btnLaunch.Name = "btnLaunch";
-            this.btnLaunch.Size = new System.Drawing.Size(149, 40);
+            this.btnLaunch.Size = new System.Drawing.Size(123, 40);
             this.btnLaunch.TabIndex = 6;
             this.btnLaunch.Text = "Launch";
             this.btnLaunch.UseVisualStyleBackColor = true;
@@ -124,9 +125,10 @@
             // 
             // btnLaunchAll
             // 
-            this.btnLaunchAll.Location = new System.Drawing.Point(222, 126);
+            this.btnLaunchAll.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnLaunchAll.Location = new System.Drawing.Point(198, 126);
             this.btnLaunchAll.Name = "btnLaunchAll";
-            this.btnLaunchAll.Size = new System.Drawing.Size(51, 40);
+            this.btnLaunchAll.Size = new System.Drawing.Size(75, 40);
             this.btnLaunchAll.TabIndex = 8;
             this.btnLaunchAll.Text = "Launch All";
             this.btnLaunchAll.UseVisualStyleBackColor = true;
@@ -147,6 +149,7 @@
             this.Controls.Add(this.btnLaunch);
             this.Controls.Add(this.rdo64bit);
             this.Controls.Add(this.rdo32bit);
+            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;

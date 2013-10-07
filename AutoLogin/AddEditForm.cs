@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace AutoLogin
         Account account;
         MainForm mForm;
         GetResolution getRes;
+        int addEdit;
 
         public AddEditForm()
         {
@@ -34,6 +36,7 @@ namespace AutoLogin
                 this.Text = "Edit Account";
             }
             this.account = account;
+            this.addEdit = addEdit;
             mForm = parent;
             this.ShowDialog(parent);
         }
@@ -87,30 +90,57 @@ namespace AutoLogin
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            if (account == null)
+            try
             {
-                account = new Account();
-                account.Client = "32bit";
-                MainForm.ACCOUNTS.Add(account);
+                // If this fails the email is not valid
+                new MailAddress(txtEmail.Text);
+
+                // Check if password is entered
+                if (txtPassword.Text == "")
+                {
+                    MessageBox.Show("Password required!");
+                }
+                else
+                {
+                    // If no name set use email address
+                    if (txtName.Text == "")
+                    {
+                        txtName.Text = txtEmail.Text;
+                    }
+
+                    // If "adding" create a new account
+                    if (account == null)
+                    {
+                        account = new Account();
+                        account.Client = "32bit";
+                        MainForm.ACCOUNTS.Add(account);
+                    }
+
+                    // Save all account information to account object
+                    account.Name = txtName.Text;
+                    account.Email = txtEmail.Text;
+                    account.Password = txtPassword.Text;
+                    account.Multiple = chkMultiple.Checked;
+                    account.NumberAccounts = chkMultiple.Checked ? (int)numAccounts.Value : 0;
+                    account.AccountNames = new string[lstAccounts.Items.Count];
+                    lstAccounts.Items.CopyTo(account.AccountNames, 0);
+                    account.SelectedAccount = chkMultiple.Checked ? lstAccounts.SelectedIndices[0] : 0;
+                    account.Windowed = chkWindowed.Checked;
+                    account.Resolution = drpResolution.Text;
+                    account.LowDetail = chkLowDetail.Checked;
+                    account.SetRealm = chkRealm.Checked;
+                    account.Realm = drpRealm.Text;
+                    account.SetCharacter = chkCharacter.Checked;
+                    account.CharacterSlot = lstCharacter.SelectedIndex;
+                    account.EnterWorld = chkEnterWorld.Checked;
+                    mForm.refreshList(addEdit);
+                    this.Close();
+                }
             }
-            account.Name = txtName.Text;
-            account.Email = txtEmail.Text;
-            account.Password = txtPassword.Text;
-            account.Multiple = chkMultiple.Checked;
-            account.NumberAccounts = chkMultiple.Checked ? (int)numAccounts.Value : 0;
-            account.AccountNames = new string[lstAccounts.Items.Count];
-            lstAccounts.Items.CopyTo(account.AccountNames, 0);
-            account.SelectedAccount = chkMultiple.Checked ? lstAccounts.SelectedIndices[0] : 0;
-            account.Windowed = chkWindowed.Checked;
-            account.Resolution = drpResolution.Text;
-            account.LowDetail = chkLowDetail.Checked;
-            account.SetRealm = chkRealm.Checked;
-            account.Realm = drpRealm.Text;
-            account.SetCharacter = chkCharacter.Checked;
-            account.CharacterSlot = lstCharacter.SelectedIndex;
-            account.EnterWorld = chkEnterWorld.Checked;
-            mForm.refreshList();
-            this.Close();
+            catch (Exception)
+            {
+                MessageBox.Show("Valid email address required!");
+            }
         }
 
         private void btnClose_Click(object sender, EventArgs e)

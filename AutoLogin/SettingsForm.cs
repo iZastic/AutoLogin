@@ -15,18 +15,28 @@ namespace AutoLogin
 {
     public partial class SettingsForm : Form
     {
+        MainForm mForm;
+
         public SettingsForm()
         {
             InitializeComponent();
         }
 
+        public void ShowMe(MainForm parent)
+        {
+            mForm = parent;
+            this.ShowDialog(parent);
+        }
+
         private void SettingsForm_Load(object sender, EventArgs e)
         {
+            // Load wowpath from settings
             txtWowPath.Text = MainForm.SETTINGS.WowPath;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
         {
+            // Check to see if Wow.exe exists in the selected folder
             if (!File.Exists(txtWowPath.Text + @"\Wow.exe"))
             {
                 MessageBox.Show("Could not find Wow.exe." + Environment.NewLine + "Please browse to your World of Warcraft folder.");
@@ -34,10 +44,7 @@ namespace AutoLogin
             else
             {
                 MainForm.SETTINGS.WowPath = txtWowPath.Text;
-                XmlSerializer writer = new XmlSerializer(typeof(Settings));
-                StreamWriter file = new StreamWriter(MainForm.PATH + @"\settings.xml");
-                writer.Serialize(file, MainForm.SETTINGS);
-                file.Close();
+                mForm.SaveSettings();
                 this.Close();
             }
         }
@@ -49,6 +56,7 @@ namespace AutoLogin
 
         private void btnBrowse_Click(object sender, EventArgs e)
         {
+            // Open new folder browser dialog
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK)
             {

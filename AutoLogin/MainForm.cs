@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Deployment.Application;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -28,6 +29,7 @@ namespace AutoLogin
         [DllImport("user32.dll")]
         public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
+        bool ApplicationLoaded = false;
         string data;
         Account ActiveAccount;
         bool Is64bit = Environment.Is64BitOperatingSystem;
@@ -45,13 +47,16 @@ namespace AutoLogin
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            Version version = Assembly.GetExecutingAssembly().GetName().Version;
+            // Add version to title
+            this.Text += " v" + version.Major + '.' + version.Minor + '.' + version.Build;
             // Finds the path where program is executing
             PATH = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             options = new Options();
             crypto = new Crypto();
             ACCOUNTS = new List<Account>();
 
-            // Check for settings file or creat default settings
+            // Check for settings file or create default settings
             if (File.Exists(PATH + @"\settings.xml"))
             {
                 LoadSettings();
@@ -65,7 +70,7 @@ namespace AutoLogin
             {
                 data = File.ReadAllText(PATH + @"\data.al");
             }
-            // Check to see if we have the right path for WoW
+            // Look for wow.exe
             if (!File.Exists(SETTINGS.WowPath + @"\Wow.exe"))
             {
                 MessageBox.Show("Could not find Wow.exe." + Environment.NewLine + "Please browse to your World of Warcraft folder.");
@@ -91,55 +96,92 @@ namespace AutoLogin
         {
             if (ActiveAccount != null)
             {
-                if (MessageBox.Show("Remove this account?", "", MessageBoxButtons.YesNo)
-                    == System.Windows.Forms.DialogResult.Yes)
+                if (lstAccounts.SelectedItems.Count == 1)
                 {
-                    ACCOUNTS.Remove(ActiveAccount);
-                    ActiveAccount = null;
-                    refreshList();
+                    if (MessageBox.Show("Remove this account?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation)
+                        == System.Windows.Forms.DialogResult.Yes)
+                    {
+                        ACCOUNTS.Remove(ActiveAccount);
+                    }
                 }
+                else if (lstAccounts.SelectedItems.Count > 0)
+                {
+                    if (MessageBox.Show("Remove these accounts?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation)
+                        == System.Windows.Forms.DialogResult.Yes)
+                    {
+                        for (int i = 0; i < lstAccounts.SelectedItems.Count; i++)
+                        {
+                            ACCOUNTS.Remove(ACCOUNTS.Find(a => a.Name == lstAccounts.SelectedItems[i].ToString()));
+                        }
+                    }
+                }
+                ActiveAccount = null;
+                refreshList();
             }
         }
 
         private void btnSettings_Click(object sender, EventArgs e)
         {
-            // TODO: show the settings form
-            new SettingsForm().ShowDialog(this);
+            // Open settings form
+            new SettingsForm().ShowMe(this);
         }
 
         private void btnLaunch_Click(object sender, EventArgs e)
         {
+            // For the ActiveAccount: create a process, set config, login
             if (ActiveAccount != null)
             {
-                var process = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = SETTINGS.WowPath + (ActiveAccount.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
-                        Arguments = (ActiveAccount.Client == "32bit" ? "-noautolaunch64bit " : "")
-                    }
-                };
-                SetWTFAndStart(process, ActiveAccount);
-                Login(process, ActiveAccount);
-            }
-        }
-
-        private void btnLaunchAll_Click(object sender, EventArgs e)
-        {
-            if (ACCOUNTS.Count > 0)
-            {
-                foreach (Account account in ACCOUNTS)
+                if (lstAccounts.SelectedItems.Count == 1)
                 {
                     var process = new Process
                     {
                         StartInfo = new ProcessStartInfo
                         {
-                            FileName = SETTINGS.WowPath + (account.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
-                            Arguments = (account.Client == "32bit" ? "-noautolaunch64bit " : "")
+                            FileName = SETTINGS.WowPath + (ActiveAccount.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
+                            Arguments = (ActiveAccount.Client == "32bit" ? "-noautolaunch64bit " : "")
                         }
                     };
-                    SetWTFAndStart(process, account);
-                    Login(process, account);
+                    SetWTFAndStart(process, ActiveAccount);
+                    Login(process, ActiveAccount);
+                }
+                else
+                {
+                    if (lstAccounts.SelectedItems.Count > 1)
+                    {
+                        LaunchSelected();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Please select at least 1 account");
+                    }
+                }
+            }
+        }
+
+        private void btnLaunchAll_Click(object sender, EventArgs e)
+        {
+            // For each account: create local account, create a process, set config, login
+            if (ACCOUNTS.Count > 0)
+            {
+                if (lstAccounts.SelectedItems.Count <= 1)
+                {
+                    foreach (Account account in ACCOUNTS)
+                    {
+                        var process = new Process
+                        {
+                            StartInfo = new ProcessStartInfo
+                            {
+                                FileName = SETTINGS.WowPath + (account.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
+                                Arguments = (account.Client == "32bit" ? "-noautolaunch64bit " : "")
+                            }
+                        };
+                        SetWTFAndStart(process, account);
+                        Login(process, account);
+                    }
+                }
+                else
+                {
+                    LaunchSelected();
                 }
             }
         }
@@ -148,21 +190,34 @@ namespace AutoLogin
         {
             if (lstAccounts.DataSource != null)
             {
-                foreach (Account account in ACCOUNTS)
+                // Set active account when 1 account clicked
+                if (lstAccounts.SelectedItems.Count == 1)
                 {
-                    if (account.ToString() == lstAccounts.SelectedItem.ToString())
+                    ActiveAccount = ACCOUNTS.Find(a => a.Name == lstAccounts.SelectedItem.ToString());
+
+                    // Set the 32bit/64bit selection
+                    if (ActiveAccount.Client == "32bit")
                     {
-                        ActiveAccount = account;
-                        break;
+                        rdo32bit.Checked = true;
+                    }
+                    else
+                    {
+                        rdo64bit.Checked = true;
                     }
                 }
-                if (ActiveAccount.Client == "32bit")
+
+                // If more than one account is selected disable the edit button and 32bit/64bit selection
+                if (lstAccounts.SelectedItems.Count > 1)
                 {
-                    rdo32bit.Checked = true;
+                    rdo32bit.Enabled = false;
+                    rdo64bit.Enabled = false;
+                    btnEdit.Enabled = false;
                 }
                 else
                 {
-                    rdo64bit.Checked = true;
+                    rdo32bit.Enabled = true;
+                    rdo64bit.Enabled = true;
+                    btnEdit.Enabled = true;
                 }
             }
         }
@@ -185,17 +240,49 @@ namespace AutoLogin
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // Save settings and account data when closing
+            SaveSettings();
             SaveData();
+        }
+
+        private void LaunchSelected()
+        {
+            // For each account selected: create local account, create a process, set config, login
+            for (int i = 0; i < lstAccounts.SelectedItems.Count; i++)
+            {
+                Account account = ACCOUNTS.Find(a => a.Name == lstAccounts.SelectedItems[i].ToString());
+                var process = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = SETTINGS.WowPath + (account.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
+                        Arguments = (account.Client == "32bit" ? "-noautolaunch64bit " : "")
+                    }
+                };
+                SetWTFAndStart(process, account);
+                Login(process, account);
+            }
+        }
+
+        public void SaveSettings()
+        {
+            SaveSelected();
+
+            // Save the XML settings file
+            XmlSerializer writer = new XmlSerializer(typeof(Settings));
+            StreamWriter file = new StreamWriter(MainForm.PATH + @"\settings.xml");
+            writer.Serialize(file, MainForm.SETTINGS);
+            file.Close();
         }
 
         private void LoadSettings()
         {
             try
             {
+                // Load the XML settings file
                 XmlSerializer reader = new XmlSerializer(typeof(Settings));
                 StreamReader file = new StreamReader(PATH + @"\settings.xml");
                 SETTINGS = (Settings)reader.Deserialize(file);
-                lstAccounts.DataSource = ACCOUNTS;
                 file.Close();
                 if (SETTINGS.HasPassword)
                 {
@@ -205,28 +292,29 @@ namespace AutoLogin
             catch (Exception) { }
         }
 
-        private void LoadData()
+        private void SaveSelected()
         {
-            if (data != null && data.Length > 0)
+            // Save currently selected accounts in SETTINGS
+            if (lstAccounts.SelectedItems.Count > 0)
             {
-                try
+                SETTINGS.Selected = new int[lstAccounts.SelectedItems.Count];
+                for (int i = 0; i < SETTINGS.Selected.Length; i++)
                 {
-                    XmlSerializer reader = new XmlSerializer(typeof(List<Account>));
-                    List<Account> accs = new List<Account>();
-                    ACCOUNTS = (List<Account>)reader.Deserialize(crypto.Decrypt(data, PASSWORD));
-                    lstAccounts.DataSource = ACCOUNTS;
+                    SETTINGS.Selected[i] = lstAccounts.SelectedIndices[i];
                 }
-                catch (Exception)
-                {
-                    MessageBox.Show("Invalid Password!");
-                }
+            }
+            else
+            {
+                SETTINGS.Selected = new int[] { 0 };
             }
         }
 
         private void SaveData()
         {
+            // If there are accounts
             if (ACCOUNTS.Count > 0)
             {
+                // Create XML data with accounts information and save encrypted file
                 XmlSerializer writer = new XmlSerializer(typeof(List<Account>));
                 MemoryStream xml = new MemoryStream();
                 writer.Serialize(xml, ACCOUNTS);
@@ -234,15 +322,75 @@ namespace AutoLogin
             }
         }
 
-        public void refreshList()
+        private void LoadData()
         {
+            // If was data loaded
+            if (data != null && data.Length > 0)
+            {
+                try
+                {
+                    // Decrypt and load XML accounts information
+                    XmlSerializer reader = new XmlSerializer(typeof(List<Account>));
+                    List<Account> accs = new List<Account>();
+                    ACCOUNTS = (List<Account>)reader.Deserialize(crypto.Decrypt(data, PASSWORD));
+                    // Load accounts into lstAccounts
+                    lstAccounts.DataSource = ACCOUNTS;
+                    SelectAccounts();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Invalid Password!");
+                }
+            }
+            ApplicationLoaded = true;
+        }
+
+        public void refreshList(int addEdit = 1)
+        {
+            // Save account data
             SaveData();
-            lstAccounts.DataSource = null;
-            lstAccounts.DataSource = ACCOUNTS;
+
+            if (addEdit == 0)
+            {
+                // Refresh lstAccounts
+                SaveSelected();
+                lstAccounts.DataSource = null;
+                lstAccounts.DataSource = ACCOUNTS;
+                SelectAccounts();
+            }
+            else
+            {
+                int l = lstAccounts.SelectedIndex;
+                // Refresh lstAccounts
+                lstAccounts.DataSource = null;
+                lstAccounts.DataSource = ACCOUNTS;
+                if (lstAccounts.Items.Count-1 >= l)
+                {
+                    lstAccounts.SelectedIndex = l;
+                }
+            }
+        }
+
+        private void SelectAccounts()
+        {
+            if (SETTINGS.Selected.Length > 0)
+            {
+                // Select previously selected accounts
+                for (int i = 0; i < SETTINGS.Selected.Length; i++)
+                {
+                    lstAccounts.SetSelected(SETTINGS.Selected[i], true);
+                }
+                // 0 is selected by default, so unselect it if needed
+                if (SETTINGS.Selected[0] != 0)
+                {
+                    lstAccounts.SetSelected(0, false);
+                }
+            }
         }
 
         private void SetWTFAndStart(Process process, Account account)
         {
+            // Get options for account
             options.SetAccount(account);
 
             // Find or create directory
@@ -279,8 +427,10 @@ namespace AutoLogin
                 }
             }
 
+            // Sleep to give harddrive time to save file
             Thread.Sleep(250);
             process.Start();
+            // Sleep long enough for Wow to read file
             Thread.Sleep(400);
         }
 
@@ -289,11 +439,16 @@ namespace AutoLogin
             // Run this in a new thread so AutoLogin is not frozen
             new Thread(() =>
             {
+                // Run in background
                 Thread.CurrentThread.IsBackground = true;
+
+                // Set keycodes
                 uint WM_KEYDOWN = 0x0100;
                 uint WM_KEYUP = 0x0101;
                 uint WM_CHAR = 0x0102;
                 int VK_RETURN = 0x0D;
+
+                // Set local account/password, otherwise it uses the account/password that changes each time Login() is called
                 Process process = p;
                 Account account = a;
 
@@ -305,8 +460,8 @@ namespace AutoLogin
 
                 // Sleep for a little to give the insides time to load
                 Thread.Sleep(account.Windowed ? 600 : 1500);
-                // Send the password one key at a time
 
+                // Send the password one key at a time
                 for (int i = 0; i < account.Password.Length; i++)
                 {
                     PostMessage(process.MainWindowHandle, WM_CHAR, new IntPtr(account.Password[i]), IntPtr.Zero);
@@ -315,6 +470,7 @@ namespace AutoLogin
                 // Hit enter to log in
                 PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
 
+                // Wait 15 seconds and press Enter
                 if (account.EnterWorld)
                 {
                     Thread.Sleep(15000);
