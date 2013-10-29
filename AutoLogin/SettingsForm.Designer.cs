@@ -35,11 +35,13 @@
             this.label1 = new System.Windows.Forms.Label();
             this.txtWowPath = new System.Windows.Forms.TextBox();
             this.btnBrowse = new System.Windows.Forms.Button();
+            this.chkUpdate = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(12, 39);
+            this.btnSave.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.btnSave.Location = new System.Drawing.Point(12, 63);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(97, 23);
             this.btnSave.TabIndex = 6;
@@ -49,7 +51,8 @@
             // 
             // btnClose
             // 
-            this.btnClose.Location = new System.Drawing.Point(115, 39);
+            this.btnClose.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.btnClose.Location = new System.Drawing.Point(115, 63);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(97, 23);
             this.btnClose.TabIndex = 7;
@@ -59,7 +62,8 @@
             // 
             // btnPassword
             // 
-            this.btnPassword.Location = new System.Drawing.Point(218, 39);
+            this.btnPassword.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.btnPassword.Location = new System.Drawing.Point(218, 63);
             this.btnPassword.Name = "btnPassword";
             this.btnPassword.Size = new System.Drawing.Size(164, 23);
             this.btnPassword.TabIndex = 8;
@@ -93,12 +97,24 @@
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
             // 
+            // chkUpdate
+            // 
+            this.chkUpdate.AutoSize = true;
+            this.chkUpdate.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.chkUpdate.Location = new System.Drawing.Point(12, 38);
+            this.chkUpdate.Name = "chkUpdate";
+            this.chkUpdate.Size = new System.Drawing.Size(151, 17);
+            this.chkUpdate.TabIndex = 12;
+            this.chkUpdate.Text = "Check for updates on start";
+            this.chkUpdate.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(394, 71);
+            this.ClientSize = new System.Drawing.Size(394, 95);
             this.ControlBox = false;
+            this.Controls.Add(this.chkUpdate);
             this.Controls.Add(this.btnBrowse);
             this.Controls.Add(this.txtWowPath);
             this.Controls.Add(this.label1);
@@ -124,5 +140,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtWowPath;
         private System.Windows.Forms.Button btnBrowse;
+        private System.Windows.Forms.CheckBox chkUpdate;
     }
 }

@@ -29,7 +29,6 @@ namespace AutoLogin
         [DllImport("user32.dll")]
         public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
-        bool ApplicationLoaded = false;
         string data;
         Account ActiveAccount;
         bool Is64bit = Environment.Is64BitOperatingSystem;
@@ -48,13 +47,12 @@ namespace AutoLogin
         private void MainForm_Load(object sender, EventArgs e)
         {
             Version version = Assembly.GetExecutingAssembly().GetName().Version;
-            // Add version to title
-            this.Text += " v" + version.Major + '.' + version.Minor + '.' + version.Build;
+
             // Finds the path where program is executing
             PATH = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            options = new Options();
-            crypto = new Crypto();
-            ACCOUNTS = new List<Account>();
+
+            // Add version to title
+            this.Text += " v" + version.Major + '.' + version.Minor + '.' + version.Build;
 
             // Check for settings file or create default settings
             if (File.Exists(PATH + @"\settings.xml"))
@@ -65,17 +63,27 @@ namespace AutoLogin
             {
                 SETTINGS = new Settings();
             }
+
+            // Check for updates
+            CheckUpdate(version);
+
+            options = new Options();
+            crypto = new Crypto();
+            ACCOUNTS = new List<Account>();
+
             // If data file exists load it
             if (File.Exists(PATH + @"\data.al"))
             {
                 data = File.ReadAllText(PATH + @"\data.al");
             }
+
             // Look for wow.exe
             if (!File.Exists(SETTINGS.WowPath + @"\Wow.exe"))
             {
                 MessageBox.Show("Could not find Wow.exe." + Environment.NewLine + "Please browse to your World of Warcraft folder.");
                 new SettingsForm().ShowDialog(this);
             }
+
             LoadData();
         }
 
@@ -245,6 +253,22 @@ namespace AutoLogin
             SaveData();
         }
 
+        private void CheckUpdate(Version version)
+        {
+            if (SETTINGS.AutoUpdate)
+            {
+                try
+                {
+                    Version v = new Version(XDocument.Load("http://izastic.twomini.com/autologin/update.xml").Root.Element("Version").Value);
+                    if (v > version)
+                    {
+                        new UpdateForm().ShowMe(this, v);
+                    }
+                }
+                catch{}
+            }
+        }
+
         private void LaunchSelected()
         {
             // For each account selected: create local account, create a process, set config, login
@@ -342,7 +366,6 @@ namespace AutoLogin
                     MessageBox.Show("Invalid Password!");
                 }
             }
-            ApplicationLoaded = true;
         }
 
         public void refreshList(int addEdit = 1)

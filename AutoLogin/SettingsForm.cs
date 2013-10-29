@@ -30,8 +30,9 @@ namespace AutoLogin
 
         private void SettingsForm_Load(object sender, EventArgs e)
         {
-            // Load wowpath from settings
+            // Load from settings
             txtWowPath.Text = MainForm.SETTINGS.WowPath;
+            chkUpdate.Checked = MainForm.SETTINGS.AutoUpdate;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -44,6 +45,7 @@ namespace AutoLogin
             else
             {
                 MainForm.SETTINGS.WowPath = txtWowPath.Text;
+                MainForm.SETTINGS.AutoUpdate = chkUpdate.Checked;
                 mForm.SaveSettings();
                 this.Close();
             }

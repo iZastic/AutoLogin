@@ -21,12 +21,14 @@ namespace AutoLogin
         public string WowPath { get; set; }
         public bool HasPassword { get; set; }
         public int[] Selected { get; set; }
+        public bool AutoUpdate { get; set; }
 
         public Settings()
         {
             WowPath = ProgramFilesx86() + @"\World of Warcraft";
             HasPassword = false;
             Selected = new int[] { 0 };
+            AutoUpdate = true;
         }
     }
 }
