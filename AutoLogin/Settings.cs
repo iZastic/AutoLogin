@@ -22,6 +22,8 @@ namespace AutoLogin
         public bool HasPassword { get; set; }
         public int[] Selected { get; set; }
         public bool AutoUpdate { get; set; }
+        public bool Minimize { get; set; }
+        public bool Hide { get; set; }
 
         public Settings()
         {
@@ -29,6 +31,8 @@ namespace AutoLogin
             HasPassword = false;
             Selected = new int[] { 0 };
             AutoUpdate = true;
+            Minimize = true;
+            Hide = false;
         }
     }
 }

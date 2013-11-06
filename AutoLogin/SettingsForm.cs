@@ -33,6 +33,8 @@ namespace AutoLogin
             // Load from settings
             txtWowPath.Text = MainForm.SETTINGS.WowPath;
             chkUpdate.Checked = MainForm.SETTINGS.AutoUpdate;
+            chkMinimize.Checked = MainForm.SETTINGS.Minimize;
+            chkHide.Checked = MainForm.SETTINGS.Hide;
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -46,6 +48,8 @@ namespace AutoLogin
             {
                 MainForm.SETTINGS.WowPath = txtWowPath.Text;
                 MainForm.SETTINGS.AutoUpdate = chkUpdate.Checked;
+                MainForm.SETTINGS.Minimize = chkMinimize.Checked;
+                MainForm.SETTINGS.Hide = chkHide.Checked;
                 mForm.SaveSettings();
                 this.Close();
             }

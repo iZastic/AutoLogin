@@ -25,7 +25,7 @@
     <ProductName>AutoLogin</ProductName>
     <PublisherName>iZastic</PublisherName>
     <OpenBrowserOnPublish>false</OpenBrowserOnPublish>
-    <ApplicationRevision>13</ApplicationRevision>
+    <ApplicationRevision>14</ApplicationRevision>
     <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -93,6 +93,7 @@
       <DependentUpon>EditAccountNameForm.cs</DependentUpon>
     </Compile>
     <Compile Include="GetResolution.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="PasswordForm.cs">
       <SubType>Form</SubType>
@@ -188,12 +189,12 @@
   <ItemGroup>
     <PublishFile Include="autologin.ico">
       <Visible>False</Visible>
-      <PublishState>Exclude</PublishState>
-      <IncludeHash>False</IncludeHash>
       <Group>
       </Group>
       <TargetPath>
       </TargetPath>
+      <PublishState>Exclude</PublishState>
+      <IncludeHash>False</IncludeHash>
       <FileType>File</FileType>
     </PublishFile>
   </ItemGroup>

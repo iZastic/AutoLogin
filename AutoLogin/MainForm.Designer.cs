@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.lstAccounts = new System.Windows.Forms.ListBox();
             this.btnAdd = new System.Windows.Forms.Button();
@@ -38,6 +39,7 @@
             this.rdo64bit = new System.Windows.Forms.RadioButton();
             this.btnSettings = new System.Windows.Forms.Button();
             this.btnLaunchAll = new System.Windows.Forms.Button();
+            this.tskIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.SuspendLayout();
             // 
             // lstAccounts
@@ -134,6 +136,15 @@
             this.btnLaunchAll.UseVisualStyleBackColor = true;
             this.btnLaunchAll.Click += new System.EventHandler(this.btnLaunchAll_Click);
             // 
+            // tskIcon
+            // 
+            this.tskIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
+            this.tskIcon.BalloonTipText = "Double click to open";
+            this.tskIcon.BalloonTipTitle = "AutoLogin is now hidden";
+            this.tskIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("tskIcon.Icon")));
+            this.tskIcon.Text = "AutoLogin";
+            this.tskIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.tskIcon_MouseDoubleClick);
+            // 
             // MainForm
             // 
             this.AcceptButton = this.btnLaunch;
@@ -158,6 +169,7 @@
             this.Text = "AutoLogin";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -174,6 +186,7 @@
         private System.Windows.Forms.RadioButton rdo64bit;
         private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Button btnLaunchAll;
+        private System.Windows.Forms.NotifyIcon tskIcon;
     }
 }
 

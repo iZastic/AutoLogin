@@ -16,18 +16,13 @@ namespace AutoLogin
 {
     public partial class MainForm : Form
     {
-        // Bring the process to foreground
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-        // Force window position and size
-        [DllImport("user32.dll", EntryPoint = "PostMessageA")]
-        private extern static bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, int uFlags);
-        // Convert char to virtual-key code
-        [DllImport("user32.dll")]
-        static extern short VkKeyScan(char ch);
+        private const int SW_RESTORE = 9;
         // Post message to process
         [DllImport("user32.dll")]
-        public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        private static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        // Restore window after hidden to taskbar
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         string data;
         Account ActiveAccount;
@@ -53,6 +48,7 @@ namespace AutoLogin
 
             // Add version to title
             this.Text += " v" + version.Major + '.' + version.Minor + '.' + version.Build;
+            tskIcon.Text += " v" + version.Major + '.' + version.Minor + '.' + version.Build;
 
             // Check for settings file or create default settings
             if (File.Exists(PATH + @"\settings.xml"))
@@ -136,6 +132,12 @@ namespace AutoLogin
 
         private void btnLaunch_Click(object sender, EventArgs e)
         {
+            // Minimize if option is set
+            if (SETTINGS.Minimize)
+            {
+                this.WindowState = FormWindowState.Minimized;
+            }
+
             // For the ActiveAccount: create a process, set config, login
             if (ActiveAccount != null)
             {
@@ -168,6 +170,12 @@ namespace AutoLogin
 
         private void btnLaunchAll_Click(object sender, EventArgs e)
         {
+            // Minimize if option is set
+            if (SETTINGS.Minimize)
+            {
+                this.WindowState = FormWindowState.Minimized;
+            }
+
             // For each account: create local account, create a process, set config, login
             if (ACCOUNTS.Count > 0)
             {
@@ -244,6 +252,28 @@ namespace AutoLogin
             {
                 ActiveAccount.Client = "64bit";
             }
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            // If minimized and setting, Hide, is true
+            if (FormWindowState.Minimized == this.WindowState && SETTINGS.Hide)
+            {
+                tskIcon.Visible = true;
+                tskIcon.ShowBalloonTip(500);
+                this.Hide();
+            }
+            else if (FormWindowState.Normal == this.WindowState && SETTINGS.Hide)
+            {
+                tskIcon.Visible = false;
+            }
+        }
+
+        private void tskIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            // Show form and restore focus
+            this.Show();
+            ShowWindow(this.Handle, SW_RESTORE);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -462,46 +492,54 @@ namespace AutoLogin
             // Run this in a new thread so AutoLogin is not frozen
             new Thread(() =>
             {
-                // Run in background
-                Thread.CurrentThread.IsBackground = true;
-
-                // Set keycodes
-                uint WM_KEYDOWN = 0x0100;
-                uint WM_KEYUP = 0x0101;
-                uint WM_CHAR = 0x0102;
-                int VK_RETURN = 0x0D;
-
-                // Set local account/password, otherwise it uses the account/password that changes each time Login() is called
-                Process process = p;
-                Account account = a;
-
-                do // Keep repeating till window is idle
+                try
                 {
-                    process.WaitForInputIdle();
-                    process.Refresh();
-                } while (process.MainWindowHandle.ToInt32() == 0);
+                    // Run in background
+                    Thread.CurrentThread.IsBackground = true;
 
-                // Sleep for a little to give the insides time to load
-                Thread.Sleep(account.Windowed ? 600 : 1500);
+                    // Set keycodes
+                    uint WM_KEYDOWN = 0x0100;
+                    uint WM_KEYUP = 0x0101;
+                    uint WM_CHAR = 0x0102;
+                    int VK_RETURN = 0x0D;
 
-                // Send the password one key at a time
-                for (int i = 0; i < account.Password.Length; i++)
-                {
-                    PostMessage(process.MainWindowHandle, WM_CHAR, new IntPtr(account.Password[i]), IntPtr.Zero);
-                    Thread.Sleep(30);
-                }
-                // Hit enter to log in
-                PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+                    // Set local account/password, otherwise it uses the account/password that changes each time Login() is called
+                    Process process = p;
+                    Account account = a;
 
-                // Wait 15 seconds and press Enter
-                if (account.EnterWorld)
-                {
-                    Thread.Sleep(15000);
-                    PostMessage(process.MainWindowHandle, WM_KEYUP, new IntPtr(VK_RETURN), IntPtr.Zero);
+                    do // Keep repeating till window is idle
+                    {
+                        process.WaitForInputIdle();
+                        process.Refresh();
+                    } while (process.MainWindowHandle.ToInt32() == 0);
+
+                    // Sleep for a little to give the insides time to load
+                    Thread.Sleep(account.Windowed ? 600 : 1500);
+
+                    // Send the password one key at a time
+                    for (int i = 0; i < account.Password.Length; i++)
+                    {
+                        PostMessage(process.MainWindowHandle, WM_CHAR, new IntPtr(account.Password[i]), IntPtr.Zero);
+                        Thread.Sleep(30);
+                    }
+                    // Hit enter to log in
                     PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
-                }
 
-                Thread.CurrentThread.Abort();
+                    // Wait 15 seconds and press Enter
+                    if (account.EnterWorld)
+                    {
+                        Thread.Sleep(15000);
+                        PostMessage(process.MainWindowHandle, WM_KEYUP, new IntPtr(VK_RETURN), IntPtr.Zero);
+                        PostMessage(process.MainWindowHandle, WM_KEYDOWN, new IntPtr(VK_RETURN), IntPtr.Zero);
+                    }
+
+                    Thread.CurrentThread.Abort();
+                }
+                catch
+                {
+                    // Crash probably due to process closing
+                    Thread.CurrentThread.Abort();
+                }
             }).Start();
         }
     }

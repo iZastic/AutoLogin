@@ -36,12 +36,14 @@
             this.txtWowPath = new System.Windows.Forms.TextBox();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.chkUpdate = new System.Windows.Forms.CheckBox();
+            this.chkMinimize = new System.Windows.Forms.CheckBox();
+            this.chkHide = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // btnSave
             // 
             this.btnSave.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.btnSave.Location = new System.Drawing.Point(12, 63);
+            this.btnSave.Location = new System.Drawing.Point(12, 83);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(97, 23);
             this.btnSave.TabIndex = 6;
@@ -52,7 +54,7 @@
             // btnClose
             // 
             this.btnClose.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.btnClose.Location = new System.Drawing.Point(115, 63);
+            this.btnClose.Location = new System.Drawing.Point(115, 83);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(97, 23);
             this.btnClose.TabIndex = 7;
@@ -63,7 +65,7 @@
             // btnPassword
             // 
             this.btnPassword.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.btnPassword.Location = new System.Drawing.Point(218, 63);
+            this.btnPassword.Location = new System.Drawing.Point(218, 83);
             this.btnPassword.Name = "btnPassword";
             this.btnPassword.Size = new System.Drawing.Size(164, 23);
             this.btnPassword.TabIndex = 8;
@@ -101,19 +103,43 @@
             // 
             this.chkUpdate.AutoSize = true;
             this.chkUpdate.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.chkUpdate.Location = new System.Drawing.Point(12, 38);
+            this.chkUpdate.Location = new System.Drawing.Point(121, 38);
             this.chkUpdate.Name = "chkUpdate";
             this.chkUpdate.Size = new System.Drawing.Size(151, 17);
             this.chkUpdate.TabIndex = 12;
             this.chkUpdate.Text = "Check for updates on start";
             this.chkUpdate.UseVisualStyleBackColor = true;
             // 
+            // chkMinimize
+            // 
+            this.chkMinimize.AutoSize = true;
+            this.chkMinimize.Location = new System.Drawing.Point(65, 60);
+            this.chkMinimize.Name = "chkMinimize";
+            this.chkMinimize.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkMinimize.Size = new System.Drawing.Size(116, 17);
+            this.chkMinimize.TabIndex = 13;
+            this.chkMinimize.Text = "Minimize on launch";
+            this.chkMinimize.UseVisualStyleBackColor = true;
+            // 
+            // chkHide
+            // 
+            this.chkHide.AutoSize = true;
+            this.chkHide.Location = new System.Drawing.Point(206, 60);
+            this.chkHide.Name = "chkHide";
+            this.chkHide.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkHide.Size = new System.Drawing.Size(125, 17);
+            this.chkHide.TabIndex = 14;
+            this.chkHide.Text = "Hide when minimized";
+            this.chkHide.UseVisualStyleBackColor = true;
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(394, 95);
+            this.ClientSize = new System.Drawing.Size(394, 115);
             this.ControlBox = false;
+            this.Controls.Add(this.chkHide);
+            this.Controls.Add(this.chkMinimize);
             this.Controls.Add(this.chkUpdate);
             this.Controls.Add(this.btnBrowse);
             this.Controls.Add(this.txtWowPath);
@@ -141,5 +167,7 @@
         private System.Windows.Forms.TextBox txtWowPath;
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.CheckBox chkUpdate;
+        private System.Windows.Forms.CheckBox chkMinimize;
+        private System.Windows.Forms.CheckBox chkHide;
     }
 }
