@@ -40,6 +40,13 @@
             this.btnSettings = new System.Windows.Forms.Button();
             this.btnLaunchAll = new System.Windows.Forms.Button();
             this.tskIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.tskMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.tskMenuLaunch = new System.Windows.Forms.ToolStripMenuItem();
+            this.launchAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.accountsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tskMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // lstAccounts
@@ -141,9 +148,55 @@
             this.tskIcon.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
             this.tskIcon.BalloonTipText = "Double click to open";
             this.tskIcon.BalloonTipTitle = "AutoLogin is now hidden";
+            this.tskIcon.ContextMenuStrip = this.tskMenu;
             this.tskIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("tskIcon.Icon")));
             this.tskIcon.Text = "AutoLogin";
             this.tskIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.tskIcon_MouseDoubleClick);
+            // 
+            // tskMenu
+            // 
+            this.tskMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tskMenuLaunch,
+            this.launchAllToolStripMenuItem,
+            this.showToolStripMenuItem,
+            this.exitToolStripMenuItem});
+            this.tskMenu.Name = "tskMenu";
+            this.tskMenu.Size = new System.Drawing.Size(131, 92);
+            // 
+            // tskMenuLaunch
+            // 
+            this.tskMenuLaunch.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.accountsToolStripMenuItem});
+            this.tskMenuLaunch.Name = "tskMenuLaunch";
+            this.tskMenuLaunch.Size = new System.Drawing.Size(130, 22);
+            this.tskMenuLaunch.Text = "Launch";
+            // 
+            // launchAllToolStripMenuItem
+            // 
+            this.launchAllToolStripMenuItem.Name = "launchAllToolStripMenuItem";
+            this.launchAllToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.launchAllToolStripMenuItem.Text = "Launch All";
+            this.launchAllToolStripMenuItem.Click += new System.EventHandler(this.launchAllToolStripMenuItem_Click);
+            // 
+            // showToolStripMenuItem
+            // 
+            this.showToolStripMenuItem.Name = "showToolStripMenuItem";
+            this.showToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.showToolStripMenuItem.Text = "Show";
+            this.showToolStripMenuItem.Click += new System.EventHandler(this.showToolStripMenuItem_Click);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
+            // accountsToolStripMenuItem
+            // 
+            this.accountsToolStripMenuItem.Name = "accountsToolStripMenuItem";
+            this.accountsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.accountsToolStripMenuItem.Text = "Accounts";
             // 
             // MainForm
             // 
@@ -170,6 +223,7 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Resize += new System.EventHandler(this.MainForm_Resize);
+            this.tskMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -187,6 +241,12 @@
         private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Button btnLaunchAll;
         private System.Windows.Forms.NotifyIcon tskIcon;
+        private System.Windows.Forms.ContextMenuStrip tskMenu;
+        private System.Windows.Forms.ToolStripMenuItem tskMenuLaunch;
+        private System.Windows.Forms.ToolStripMenuItem accountsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem launchAllToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
     }
 }
 

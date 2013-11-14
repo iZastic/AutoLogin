@@ -259,6 +259,7 @@ namespace AutoLogin
             // If minimized and setting, Hide, is true
             if (FormWindowState.Minimized == this.WindowState && SETTINGS.Hide)
             {
+                LoadLaunchAccounts();
                 tskIcon.Visible = true;
                 tskIcon.ShowBalloonTip(500);
                 this.Hide();
@@ -283,12 +284,47 @@ namespace AutoLogin
             SaveData();
         }
 
+        private void launchAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // For each account: create local account, create a process, set config, login
+            if (ACCOUNTS.Count > 0)
+            {
+                foreach (Account account in ACCOUNTS)
+                {
+                    var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = SETTINGS.WowPath + (account.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
+                            Arguments = (account.Client == "32bit" ? "-noautolaunch64bit " : "")
+                        }
+                    };
+                    SetWTFAndStart(process, account);
+                    Login(process, account);
+                }
+            }
+        }
+
+        private void showToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Show window and bring to front
+            ShowWindow(this.Handle, SW_RESTORE);
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Exit as if hitting the red X
+            Application.Exit();
+        }
+
         private void CheckUpdate(Version version)
         {
             if (SETTINGS.AutoUpdate)
             {
+                // If file not found or no internet connection this will fail showing no error
                 try
                 {
+                    // Load update version from online xml version file and see if it's new than our version
                     Version v = new Version(XDocument.Load("http://izastic.twomini.com/autologin/update.xml").Root.Element("Version").Value);
                     if (v > version)
                     {
@@ -541,6 +577,40 @@ namespace AutoLogin
                     Thread.CurrentThread.Abort();
                 }
             }).Start();
+        }
+
+        private void LoadLaunchAccounts()
+        {
+            // Clear the Lauch of old accounts incase they've changed
+            tskMenuLaunch.DropDownItems.Clear();
+            if (ACCOUNTS.Count > 0)
+            {
+                // Create menu item
+                ToolStripMenuItem menuItem;
+                // Setup and add menu item for each account
+                foreach (Account account in ACCOUNTS)
+                {
+                    menuItem = new ToolStripMenuItem();
+                    menuItem.Text = account.Name;
+                    menuItem.Click += new EventHandler(MinimizedLaunch);
+                    tskMenuLaunch.DropDownItems.Add(menuItem);
+                }
+            }
+        }
+
+        private void MinimizedLaunch(object sender, EventArgs e)
+        {
+            Account account = ACCOUNTS.Find(a => a.Name == sender.ToString());
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = SETTINGS.WowPath + (account.Client == "32bit" ? @"\Wow.exe" : (Is64bit ? @"\Wow-64.exe" : @"\Wow.exe")),
+                    Arguments = (account.Client == "32bit" ? "-noautolaunch64bit " : "")
+                }
+            };
+            SetWTFAndStart(process, account);
+            Login(process, account);
         }
     }
 }
